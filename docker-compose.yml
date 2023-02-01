@@ -1,0 +1,49 @@
+version: "3.9"
+services:
+  fill:
+    image: "fill_client:latest"
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        DIR: "fill"
+    scale: 5
+    environment:
+      CONTROLLER_URI: "http://controller:8080"
+      STOCKS: "AXA;Apple Inc;Microsoft Corp;Amazon.com, inc.;Tesla, Inc;Alphabet Inc;Nvidia Corp;Berkshire Hathaway Inc;Meta Platforms, Inc;UnitedHealth Group Inc"
+      DEBUG: 1
+  AUM:
+    image: "aum:latest"
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        DIR: "aum"
+    environment:
+      CONTROLLER_URI: "http://controller:8080"
+      INTERVAL: 30
+      ACCOUNTS: 10
+      DEBUG: 1
+  controller:
+    image: "split_controller:latest"
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        DIR: "controller"
+    environment:
+      POSITIONS_URI: "http://position:8080"
+      INTERVAL: 10
+      DEBUG: 1
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+  position:
+    image: "position_report:latest"
+    build: 
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        DIR: "position"
+    environment:
+      DEBUG: 1
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8080"]
+
